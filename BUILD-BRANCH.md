@@ -45,8 +45,15 @@ git push fork build
 
 ## Before the first deploy
 
-GHCR packages are **private by default**. Either make the two packages public,
-or give the cluster an imagePullSecret — the chart supports one via
+Published packages inherit the repository's visibility, and this fork is
+public, so the images are **public and pullable without credentials** — no
+imagePullSecret needed. Verified on the first run:
+
+    ghcr.io/thapakazi/geospatial-studio-core/geostudio-gateway
+    tags: latest, build, sha-<short>   visibility: public
+
+If the repo is ever made private, these flip to private with it and the cluster
+will need an imagePullSecret — the chart supports one via
 `global.imagePullSecret` and `FT_IMAGE_PULL_SECRETS`.
 
 When pointing the chart at these images, set the per-image `image.name` values.
