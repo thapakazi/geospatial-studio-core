@@ -35,8 +35,14 @@ class Settings(BaseSettings):
     OBJECT_STORAGE_ENDPOINT: Optional[str] = Field(
         description="COS endpoint", default=""
     )
-    OBJECT_STORAGE_KEY_ID: str = Field(description="Key ID for COS authentication")
-    OBJECT_STORAGE_SEC_KEY: str = Field(description="Secret Key for COS authentication")
+    # Optional: unset means boto3 resolves credentials from the AWS provider
+    # chain. Read them via object_storage_client_kwargs() below.
+    OBJECT_STORAGE_KEY_ID: Optional[str] = Field(
+        default=None, description="Key ID for COS authentication"
+    )
+    OBJECT_STORAGE_SEC_KEY: Optional[str] = Field(
+        default=None, description="Secret Key for COS authentication"
+    )
     OBJECT_STORAGE_REGION: Optional[str] = Field(
         description="URL with the region", default=""
     )
@@ -390,3 +396,25 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+def object_storage_client_kwargs(settings_: Optional[Settings] = None) -> dict:
+    """Endpoint and credential kwargs for boto3.client("s3").
+
+    Spread into the call, leaving config/region/verify at the call site:
+
+        boto3.client("s3", config=..., **object_storage_client_kwargs())
+
+    Each is included only when set. Omitting them is what lets botocore use its
+    own provider chain (EKS Pod Identity, an instance profile, ~/.aws), and an
+    empty string is not equivalent: "" is a real credential to boto3, and
+    endpoint_url="" raises ValueError: Invalid endpoint.
+    """
+    settings_ = settings_ or get_settings()
+    kwargs = {}
+    if settings_.OBJECT_STORAGE_KEY_ID and settings_.OBJECT_STORAGE_SEC_KEY:
+        kwargs["aws_access_key_id"] = settings_.OBJECT_STORAGE_KEY_ID
+        kwargs["aws_secret_access_key"] = settings_.OBJECT_STORAGE_SEC_KEY
+    if settings_.OBJECT_STORAGE_ENDPOINT:
+        kwargs["endpoint_url"] = settings_.OBJECT_STORAGE_ENDPOINT
+    return kwargs

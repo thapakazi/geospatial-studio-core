@@ -2374,14 +2374,6 @@ async def onboard_dataset(
             ),
             ("DATASET_ID", make_k8s_secret_literal(created_item.id)),
             ("DATASET_URL", make_k8s_secret_literal(created_item.dataset_url)),
-            (
-                "OBJECT_STORAGE_SEC_KEY",
-                make_k8s_secret_literal(settings.OBJECT_STORAGE_SEC_KEY),
-            ),
-            (
-                "OBJECT_STORAGE_KEY_ID",
-                make_k8s_secret_literal(settings.OBJECT_STORAGE_KEY_ID),
-            ),
             ("DF_WEBHOOK_URL", make_k8s_secret_literal(settings.GEOFT_WEBHOOK_URL)),
             ("DF_APIKEY", make_k8s_secret_literal(settings.FT_API_KEY)),
             ("BUCKET_NAME", make_k8s_secret_literal(settings.DATASET_FILES_BUCKET)),
@@ -2394,6 +2386,21 @@ async def onboard_dataset(
                 make_k8s_secret_literal(settings.OBJECT_STORAGE_ENDPOINT),
             ),
         ]
+
+        # Only when configured. Unset means the job should pick up credentials
+        # from the AWS provider chain instead; the template marks these two
+        # optional so the pod still starts without them.
+        if settings.OBJECT_STORAGE_KEY_ID and settings.OBJECT_STORAGE_SEC_KEY:
+            secret_literals += [
+                (
+                    "OBJECT_STORAGE_SEC_KEY",
+                    make_k8s_secret_literal(settings.OBJECT_STORAGE_SEC_KEY),
+                ),
+                (
+                    "OBJECT_STORAGE_KEY_ID",
+                    make_k8s_secret_literal(settings.OBJECT_STORAGE_KEY_ID),
+                ),
+            ]
 
         k8s_create_secret_command += " " + " ".join(
             f"--from-literal={key}={value}" for key, value in secret_literals

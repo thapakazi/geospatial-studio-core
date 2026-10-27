@@ -55,11 +55,13 @@ spec:
             secretKeyRef:
               name: dataset-onboarding-v2-pipeline-params-dataset-id
               key: OBJECT_STORAGE_SEC_KEY
+              optional: true
         - name: OBJECT_STORAGE_KEY_ID
           valueFrom:
             secretKeyRef:
               name: dataset-onboarding-v2-pipeline-params-dataset-id
               key: OBJECT_STORAGE_KEY_ID
+              optional: true
         - name: DF_APIKEY
           valueFrom:
             secretKeyRef:

@@ -117,13 +117,24 @@ error = {"code": "0000", "message": "N/A"}
 
 
 def object_storage_client():
+    # Mirrors gfmstudio.config.object_storage_client_kwargs(): include each
+    # only when set, so botocore can fall back to its own provider chain.
+    kwargs = {}
+    key_id = os.getenv("OBJECT_STORAGE_KEY_ID", "")
+    sec_key = os.getenv("OBJECT_STORAGE_SEC_KEY", "")
+    if key_id and sec_key:
+        kwargs["aws_access_key_id"] = key_id
+        kwargs["aws_secret_access_key"] = sec_key
+
+    endpoint = os.getenv("OBJECT_STORAGE_ENDPOINT", "")
+    if endpoint:
+        kwargs["endpoint_url"] = endpoint
+
     s3 = boto3.client(
         "s3",
-        endpoint_url=os.getenv("OBJECT_STORAGE_ENDPOINT", ""),
-        aws_access_key_id=os.getenv("OBJECT_STORAGE_KEY_ID", ""),
-        aws_secret_access_key=os.getenv("OBJECT_STORAGE_SEC_KEY", ""),
         config=Config(signature_version="s3v4"),
         region_name=os.getenv("OBJECT_STORAGE_REGION", ""),
+        **kwargs,
     )
     return s3
 

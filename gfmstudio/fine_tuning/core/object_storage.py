@@ -15,7 +15,12 @@ from botocore.exceptions import ClientError
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.type_defs import ObjectTypeDef
 
-from gfmstudio.config import Settings, get_settings, settings
+from gfmstudio.config import (
+    Settings,
+    get_settings,
+    object_storage_client_kwargs,
+    settings,
+)
 
 logger = structlog.get_logger()
 
@@ -49,12 +54,10 @@ def object_storage_client(settings_: Optional[Settings] = None) -> S3Client:
     )
     s3 = boto3.client(
         "s3",
-        endpoint_url=settings_.OBJECT_STORAGE_ENDPOINT,
-        aws_access_key_id=settings_.OBJECT_STORAGE_KEY_ID,
-        aws_secret_access_key=settings_.OBJECT_STORAGE_SEC_KEY,
         config=Config(signature_version=settings.OBJECT_STORAGE_SIGNATURE_VERSION),
         region_name=settings_.OBJECT_STORAGE_REGION,
         verify=(settings.ENVIRONMENT.lower() not in ["local", "crc"]),
+        **object_storage_client_kwargs(settings_),
     )
     return s3
 

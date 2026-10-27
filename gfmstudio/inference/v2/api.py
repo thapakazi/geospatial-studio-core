@@ -41,7 +41,7 @@ from gfmstudio.celery_worker import (
     invoke_fine_tuning_webhook_handlers,
 )
 from gfmstudio.common.api import crud, utils
-from gfmstudio.config import settings
+from gfmstudio.config import object_storage_client_kwargs, settings
 from gfmstudio.cos_client import get_cos_client
 from gfmstudio.data_advisor.data_advisor import (
     data_advisor_list_collections,
@@ -706,11 +706,9 @@ async def create_generic_processor(
     # Upload generic processor file to COS
     s3 = boto3.client(
         "s3",
-        aws_access_key_id=settings.OBJECT_STORAGE_KEY_ID,
-        aws_secret_access_key=settings.OBJECT_STORAGE_SEC_KEY,
-        endpoint_url=settings.OBJECT_STORAGE_ENDPOINT,
         config=Config(signature_version=settings.OBJECT_STORAGE_SIGNATURE_VERSION),
         verify=(settings.ENVIRONMENT.lower() not in ["local", "crc"]),
+        **object_storage_client_kwargs(),
     )
     generic_processor_cos_path = (
         f"{str(created_generic_processor.id)}/{generic_processor_file.filename}"
@@ -792,11 +790,9 @@ async def retrieve_generic_processor(
 
     s3 = boto3.client(
         "s3",
-        aws_access_key_id=settings.OBJECT_STORAGE_KEY_ID,
-        aws_secret_access_key=settings.OBJECT_STORAGE_SEC_KEY,
-        endpoint_url=settings.OBJECT_STORAGE_ENDPOINT,
         config=Config(signature_version=settings.OBJECT_STORAGE_SIGNATURE_VERSION),
         verify=(settings.ENVIRONMENT.lower() not in ["local", "crc"]),
+        **object_storage_client_kwargs(),
     )
 
     try:
@@ -1339,11 +1335,9 @@ async def get_fileshare_presigned_urls(
 
     s3 = boto3.client(
         "s3",
-        aws_access_key_id=settings.OBJECT_STORAGE_KEY_ID,
-        aws_secret_access_key=settings.OBJECT_STORAGE_SEC_KEY,
-        endpoint_url=settings.OBJECT_STORAGE_ENDPOINT,
         config=Config(signature_version=settings.OBJECT_STORAGE_SIGNATURE_VERSION),
         verify=(settings.ENVIRONMENT.lower() not in ["local", "crc"]),
+        **object_storage_client_kwargs(),
     )
     try:
         upload_url = generate_upload_presigned_url(

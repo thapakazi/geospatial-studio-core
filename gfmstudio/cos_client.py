@@ -8,7 +8,7 @@ import boto3
 from botocore.config import Config
 from fastapi import FastAPI, Request
 
-from gfmstudio.config import settings
+from gfmstudio.config import object_storage_client_kwargs, settings
 from gfmstudio.log import logger
 
 
@@ -21,12 +21,10 @@ def init_cos_client(app: FastAPI = None):
     try:
         cos_client = boto3.client(
             "s3",
-            endpoint_url=settings.OBJECT_STORAGE_ENDPOINT,
-            aws_access_key_id=settings.OBJECT_STORAGE_KEY_ID,
-            aws_secret_access_key=settings.OBJECT_STORAGE_SEC_KEY,
             config=Config(signature_version=settings.OBJECT_STORAGE_SIGNATURE_VERSION),
             region_name=settings.OBJECT_STORAGE_REGION,
             verify=(settings.ENVIRONMENT.lower() not in ["local", "crc"]),
+            **object_storage_client_kwargs(),
         )
         if app:
             app.state.cos_client = cos_client
